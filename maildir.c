@@ -1,18 +1,20 @@
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include "prioq.h"
 #include "env.h"
 #include "stralloc.h"
 #include "direntry.h"
 #include "datetime.h"
 #include "now.h"
+#include "scan.h"
 #include "str.h"
 #include "maildir.h"
 
 struct strerr maildir_chdir_err;
 struct strerr maildir_scan_err;
 
-int maildir_chdir()
+int maildir_chdir(void)
 {
  char *maildir;
  maildir = env_get("MAILDIR");
@@ -28,44 +30,65 @@ stralloc *tmpname;
 {
  DIR *dir;
  direntry *d;
- datetime_sec time;
+ datetime_sec tnow;
  struct stat st;
 
- time = now();
+ tnow = now();
 
  dir = opendir("tmp");
  if (!dir) return;
 
- while (d = readdir(dir))
+ while ((d = readdir(dir)))
   {
    if (d->d_name[0] == '.') continue;
    if (!stralloc_copys(tmpname,"tmp/")) break;
    if (!stralloc_cats(tmpname,d->d_name)) break;
    if (!stralloc_0(tmpname)) break;
    if (stat(tmpname->s,&st) == 0)
-     if (time > st.st_atime + 129600)
+     if (tnow > st.st_atime + 129600)
        unlink(tmpname->s);
   }
  closedir(dir);
 }
 
-static int append(pq,filenames,subdir,time)
+static int gettime(char *name, datetime_sec *mtime)
+{
+	char *s;
+	unsigned long u;
+	struct stat st;
+
+	s = name + str_rchr(name, '/');
+	if (*s++ != '/')
+		return -1;
+	s += scan_ulong(s, &u);
+	if (u != 0 && *s == '.') {
+		*mtime = u;
+		return 0;
+	}
+
+	if (stat(name, &st) == -1)
+		return -1;
+	*mtime = st.st_mtime;
+	return (0);
+}
+
+static int append(pq,filenames,subdir,tnow)
 prioq *pq;
 stralloc *filenames;
 char *subdir;
-datetime_sec time;
+datetime_sec tnow;
 {
  DIR *dir;
  direntry *d;
  struct prioq_elt pe;
  unsigned int pos;
- struct stat st;
+ datetime_sec mtime;
 
  dir = opendir(subdir);
  if (!dir)
    STRERR_SYS3(-1,maildir_scan_err,"unable to scan $MAILDIR/",subdir,": ")
 
- while (d = readdir(dir))
+ while ((d = readdir(dir)))
   {
    if (d->d_name[0] == '.') continue;
    pos = filenames->len;
@@ -73,10 +96,10 @@ datetime_sec time;
    if (!stralloc_cats(filenames,"/")) break;
    if (!stralloc_cats(filenames,d->d_name)) break;
    if (!stralloc_0(filenames)) break;
-   if (stat(filenames->s + pos,&st) == 0)
-     if (st.st_mtime < time) /* don't want to mix up the order */
+   if (gettime(filenames->s + pos,&mtime) == 0)
+     if (mtime < tnow) /* don't want to mix up the order */
       {
-       pe.dt = st.st_mtime;
+       pe.dt = mtime;
        pe.id = pos;
        if (!prioq_insert(pq,&pe)) break;
       }
@@ -94,15 +117,14 @@ int flagnew;
 int flagcur;
 {
  struct prioq_elt pe;
- datetime_sec time;
- int r;
+ datetime_sec tnow;
 
  if (!stralloc_copys(filenames,"")) return 0;
  while (prioq_min(pq,&pe)) prioq_delmin(pq);
 
- time = now();
+ tnow = now();
 
- if (flagnew) if (append(pq,filenames,"new",time) == -1) return -1;
- if (flagcur) if (append(pq,filenames,"cur",time) == -1) return -1;
+ if (flagnew) if (append(pq,filenames,"new",tnow) == -1) return -1;
+ if (flagcur) if (append(pq,filenames,"cur",tnow) == -1) return -1;
  return 0;
 }

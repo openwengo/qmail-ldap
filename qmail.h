@@ -8,17 +8,19 @@ struct qmail {
   unsigned long pid;
   int fdm;
   int fde;
+  int fderr;
   substdio ss;
   char buf[1024];
 } ;
 
-extern int qmail_open();
-extern void qmail_put();
-extern void qmail_puts();
-extern void qmail_from();
-extern void qmail_to();
-extern void qmail_fail();
-extern char *qmail_close();
-extern unsigned long qmail_qp();
+extern int qmail_open(struct qmail *);
+extern int qmail_remote(struct qmail *, char *);
+extern void qmail_put(struct qmail *, const char *, int);
+extern void qmail_puts(struct qmail *, const char *);
+extern void qmail_from(struct qmail *, const char *);
+extern void qmail_to(struct qmail *, const char *);
+extern void qmail_fail(struct qmail *);
+extern const char *qmail_close(struct qmail *);
+extern unsigned long qmail_qp(struct qmail *);
 
 #endif

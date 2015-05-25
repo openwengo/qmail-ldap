@@ -318,8 +318,59 @@ int qldap_get(stralloc *mail, unsigned int at, int fdmess)
      }
    } while (rv != OK && !done);
 
+   // DASH_EXT AVEC "."
+   char auto_break_old = *auto_break ;
+   int  b_autobreak_dot = 0;
+   /* reset filter_mail */
+   filter_mail(0, 0);
+   *auto_break = '.' ;
+   if (rv == NOSUCH ) {
+   done = 0;
+   do {
+     f = filter_mail(mail->s, &done);
+     if (f == (char *)0) cae(q, QLX_NOMEM);
+     
+     logit(16, "ldapfilter: '%s'\n", f);
+  
+     /* do the search for the email address */
+     rv = qldap_lookup(q, f, attrs);
+     switch (rv) {
+     case OK:
+       break; /* something found */
+     case TIMEOUT:
+       /* don't try an other address, retry later, hopefully ... */
+       cae(q, QLX_SEARCHTIMEOUT);
+     case TOOMANY:
+#ifdef DUPEALIAS
+       /*
+        * we are going to deliver this to a special alias user for
+        * further processing
+        */
+       qldap_free(q);
+       return 3;
+#else
+       /* admin error, don't try a lower precedence addresses */
+       cae(q, QLX_TOOMANY);
+#endif
+     case FAILED:
+       /* ... again do not retry lower precedence addresses */
+       cae(q, QLX_LDAPFAIL);
+     case NOSUCH:
+       break;
+     }
+   } while (rv != OK && !done);
+	if ( rv != NOSUCH ) {
+   		b_autobreak_dot = 1;
+	}
+   } // NOSUCH
+
+
+   *auto_break = auto_break_old ;
+   // FIN DASH_EXT AVEC "."
+
    /* nothing found, try a local lookup or a alias delivery */
    if (rv == NOSUCH) {
+
      qldap_free(q);
      return 1;
    }
@@ -442,6 +493,11 @@ int qldap_get(stralloc *mail, unsigned int at, int fdmess)
     *  Fill up the dash-field and the extension field with the values
     * used for the dash-ext search.
     */
+
+   // DASH_EXT : RESTORE
+   if ( b_autobreak_dot == 1 ) {
+	*auto_break = '.' ;
+   }
    rv = filter_mail_ext();
    if (rv != -1)
      if (!stralloc_cats(&nughde,"-")) cae(q, QLX_NOMEM);
@@ -453,7 +509,10 @@ int qldap_get(stralloc *mail, unsigned int at, int fdmess)
        if (mail->s[ext] == *auto_break) i++;
      if (!stralloc_catb(&nughde, mail->s+ext,at-ext)) cae(q, QLX_NOMEM);
    }
+  // DASH_EXT : RESTORE AGAIN
+   *auto_break = auto_break_old ;
    if (!stralloc_0(&nughde)) cae(q, QLX_NOMEM);
+
 
    /*
     * nughde is filled now setup the environment, with:

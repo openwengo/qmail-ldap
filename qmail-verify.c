@@ -287,6 +287,51 @@ lookup(stralloc *mail)
 			break;
 		}
 	} while (rv != OK && !done);
+
+        // DASH_EXT AVEC "."
+        char auto_break_old = *auto_break ;
+        /* reset filter_mail */
+        filter_mail(0, 0);
+        *auto_break = '.' ;
+        if (rv == NOSUCH ) {
+        done = 0;
+        do {
+                f = filter_mail(mail->s, &done);
+                if (f == (char *)0) die_nomem();
+
+                logit(16, "ldapfilter: '%s'\n", f);
+
+                /* do the search for the email address */
+                rv = qldap_lookup(q, f, attrs);
+                switch (rv) {
+                case OK:
+                        break; /* something found */
+                case TIMEOUT:
+                        /* temporary error but give up so that the
+                         * ldap server can recover */
+                        die_timeout();
+                case TOOMANY:
+#ifdef DUPEALIAS
+                        if (substdio_putflush(subfdout, "K", 1) == -1)
+                                die_write();
+                        qldap_free_results(q);
+#else
+                        /* admin error, also temporary */
+                        temp_fail();
+#endif
+                        return (-1);
+                case FAILED:
+                        /* ... again temporary */
+                        temp_fail();
+                        return (-1);
+                case NOSUCH:
+                        break;
+                }
+        } while (rv != OK && !done);
+        } // NOSUCH ...
+        *auto_break = auto_break_old ;
+       // FIN DASH_EXT AVEC "."
+
 	/* reset filter_mail */
 	filter_mail(0, 0);
 

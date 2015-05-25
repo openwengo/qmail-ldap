@@ -1217,7 +1217,7 @@ void smtp_rcpt(char *arg)
   if (rcptcheck) {
     if (!goodmailaddr()) {
       logline(4,"recipient verify, recipient not in goodmailaddr");
-      if (addrlocals()) {
+      if (addrlocals()||addrallowed()) {
 	char *s;
 	logline(4,"recipient verify, recipient is local");
         switch (ldaplookup(addr.s, &s)) {

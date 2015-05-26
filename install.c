@@ -13,6 +13,33 @@ extern void hier();
 
 #define FATAL "install: fatal: "
 
+#ifdef FAKE_CHOWN
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
+
+int fake_chown(dir,uid,gid) 
+const char *dir;
+int uid;
+int gid;
+
+{
+  struct passwd *result ;
+  result = getpwuid(uid);
+  struct group *result2 ;
+  result2 = getgrgid(gid);
+  if (dir[0] == '/') {
+     printf("chown %s.%s %s\n",result->pw_name,result2->gr_name,dir) ;
+  } else {
+     printf("chown %s.%s %s/%s\n",result->pw_name,result2->gr_name,get_current_dir_name(),dir) ;
+  }
+  return 0;
+}
+#define chown(dir,uid,gid) fake_chown(dir,uid,gid)
+#endif
+
 int fdsourcedir = -1;
 
 void h(home,uid,gid,mode)

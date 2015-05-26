@@ -1,1 +1,1 @@
-echo exec "$CC" -c '${1+"$@"}'
+echo exec "$CC" "$CFLAGS" -c '${1+"$@"}'

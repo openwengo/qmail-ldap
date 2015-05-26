@@ -259,12 +259,19 @@ qldap_open(qldap *q)
 	CHECK(q, OPEN);
 	
 	/* allocate the connection */
-	if ((q->ld = ldap_init(ldap_server.s,LDAP_PORT)) == 0) {
+        if ( (strncmp("ldap://",ldap_server.s,7) == 0 ) ||  (strncmp("ldaps://",ldap_server.s,8) == 0 ) ) {
+          if ( (rc = ldap_initialize(& (q->ld), ldap_server.s)) == 0) {
+	    logit(128, "qldap_open: init successful\n");
+          } else {
+            q->state = ERROR;
+            return rc ;
+          }
+        } else {
+	  if ((q->ld = ldap_init(ldap_server.s,LDAP_PORT)) == 0) {
 		logit(128, "qldap_open: init failed\n");
 		return ERRNO;
-	}
-	logit(128, "qldap_open: init successful\n");
-
+	  }
+        }
 	rc = qldap_set_option(q, 0);
 	if (rc != OK)
 		logit(128, "qldap_open: qldap_set_option failed\n");

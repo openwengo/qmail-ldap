@@ -285,6 +285,14 @@ auto_qmail.o: \
 compile auto_qmail.c
 	./compile auto_qmail.c
 
+auto_qmail_inst.c: \
+auto-str conf-qmail_inst
+	./auto-str auto_qmail_inst `head -1 conf-qmail_inst` > auto_qmail_inst.c
+
+auto_qmail_inst.o: \
+compile auto_qmail_inst.c
+	./compile auto_qmail_inst.c
+
 auto_spawn.c: \
 auto-int conf-spawn
 	./auto-int auto_spawn `head -1 conf-spawn` > auto_spawn.c
@@ -968,7 +976,7 @@ compile hfield.c hfield.h
 	./compile hfield.c
 
 hier.o: \
-compile hier.c auto_qmail.h auto_split.h auto_uids.h fmt.h fifo.h
+compile hier.c auto_qmail_inst.h auto_split.h auto_uids.h fmt.h fifo.h
 	./compile $(LDAPFLAGS) $(DEBUG) hier.c
 
 home: \
@@ -1006,21 +1014,21 @@ seek.h fork.h
 	./compile idedit.c
 
 install: \
-load install.o fifo.o hier.o auto_qmail.o auto_split.o auto_uids.o \
+load install.o fifo.o hier.o auto_qmail_inst.o auto_split.o auto_uids.o \
 auto_userl.o strerr.a substdio.a open.a error.a str.a fs.a
-	./load install fifo.o hier.o auto_qmail.o auto_split.o \
+	./load install fifo.o hier.o auto_qmail_inst.o auto_split.o \
 	auto_uids.o auto_userl.o strerr.a substdio.a open.a error.a \
 	str.a fs.a 
 
 install-big: \
-load install-big.o fifo.o install.o auto_qmail.o auto_split.o \
+load install-big.o fifo.o install.o auto_qmail_inst.o auto_split.o \
 auto_uids.o auto_userl.o strerr.a substdio.a open.a error.a str.a fs.a
-	./load install-big fifo.o install.o auto_qmail.o \
+	./load install-big fifo.o install.o auto_qmail_inst.o \
 	auto_split.o auto_uids.o auto_userl.o strerr.a substdio.a \
 	open.a error.a str.a fs.a 
 
 install-big.o: \
-compile install-big.c auto_qmail.h auto_split.h auto_uids.h fmt.h \
+compile install-big.c auto_qmail_inst.h auto_split.h auto_uids.h fmt.h \
 fifo.h
 	./compile $(LDAPFLAGS) $(DEBUG) install-big.c
 
@@ -1030,9 +1038,9 @@ exit.h
 	./compile install.c
 
 instcheck: \
-load instcheck.o fifo.o hier.o auto_qmail.o auto_split.o auto_uids.o \
+load instcheck.o fifo.o hier.o auto_qmail_inst.o auto_split.o auto_uids.o \
 auto_userl.o strerr.a substdio.a error.a str.a fs.a
-	./load instcheck fifo.o hier.o auto_qmail.o auto_split.o \
+	./load instcheck fifo.o hier.o auto_qmail_inst.o auto_split.o \
 	auto_uids.o auto_userl.o strerr.a substdio.a error.a str.a fs.a 
 
 instcheck.o: \

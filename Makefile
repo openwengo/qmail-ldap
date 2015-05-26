@@ -20,11 +20,14 @@
 # -DQUOTATRASH to include the Trash in the quota calculation (normaly it is not)
 # -DSMTPEXECCHECK to enable smtp DOS/Windows executable detection
 #LDAPFLAGS=-DQLDAP_CLUSTER -DEXTERNAL_TODO -DDASH_EXT -DDATA_COMPRESS -DQMQP_COMPRESS -DSMTPEXECCHECK
+LDAPFLAGS=-DALTQUEUE -DEXTERNAL_TODO -DDASH_EXT -DSMTPEXECCHECK -DBIGTODO
 
 # Perhaps you have different ldap libraries, change them here
-LDAPLIBS=-L/usr/local/lib -lldap -llber
+#LDAPLIBS=-L/usr/local/lib -lldap -llber
+LDAPLIBS=-lldap -llber
 # and change the location of the include files here
-LDAPINCLUDES=-DLDAP_DEPRECATED=1 -I/usr/local/include
+#LDAPINCLUDES=-DLDAP_DEPRECATED=1 -I/usr/local/include
+LDAPINCLUDES=-DLDAP_DEPRECATED=1
 # on Slowaris you need -lresolv and probably a LD_RUN_PATH added like this:
 #LDAPLIBS=-L/opt/OpenLDAP/lib -lldap -llber -lresolv -R/opt/OpenLDAP/lib
 # for example on my Linux box I use:
@@ -43,14 +46,15 @@ LDAPINCLUDES=-DLDAP_DEPRECATED=1 -I/usr/local/include
 # use -DTLS_REMOTE to enable tls support in qmail-remote
 # use -DTLS_SMTPD to enable tls support in qmail-smtpd
 # use -DTLSDEBUG to enable additional tls debug information in qmail-remote
-#TLS=-DTLS_REMOTE -DTLS_SMTPD
+TLS=-DTLS_REMOTE -DTLS_SMTPD
 # Path to OpenSSL includes
 #TLSINCLUDES=-I/usr/local/include
 # Path to OpenSSL libraries
 #TLSLIBS=-L/usr/local/lib -lssl -lcrypto
+TLSLIBS=-lssl -lcrypto
 # Path to OpenSSL binary
 #OPENSSLBIN=/usr/local/bin/openssl
-#OPENSSLBIN=openssl
+OPENSSLBIN=openssl
 
 # to make the Netscape download progress bar work with qmail-pop3d
 # uncomment the next line (allready done)
@@ -64,6 +68,7 @@ MNW=-DMAKE_NETSCAPE_WORK
 
 # on most systems we need this to make auth_pop and auth_imap
 #SHADOWLIBS=-lcrypt
+SHADOWLIBS=-lcrypt
 # OpenBSD and other Systems do not have libcrypt, so comment the line out
 # if you get linking problems.
 # To use shadow passwords under some Linux OS, uncomment the next two lines.
@@ -74,6 +79,7 @@ MNW=-DMAKE_NETSCAPE_WORK
 # to enable the possibility to log and debug imap and pop uncoment the
 # next line
 #DEBUG=-DDEBUG
+DEBUG=-DDEBUG
 # WARNING: you need a NONE DEBUG auth_* to run with inetd
 
 # for profiling ...

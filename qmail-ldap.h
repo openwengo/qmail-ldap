@@ -38,7 +38,7 @@
  * ATTN: escape the string correctly, remember
  * '(', ')', '\', and '*' have to be escaped with '\'
  */
-#define LDAP_CATCH_ALL "catchall"
+#define LDAP_CATCH_ALL "default"
 
 /* triger level for quotawarning (0-100) */
 #define QUOTA_WARNING_LEVEL 70

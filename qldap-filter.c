@@ -193,7 +193,7 @@ filter_mail(char *mail, int *done)
 			/* build the search string for the email address */
 			/* mail address */
 			if (!filter_start(&filter) ||
-			    !stralloc_copys(&filter, "(|(") ||
+			    !stralloc_cats(&filter, "(|(") ||
 			    !stralloc_cats(&filter, LDAP_MAIL) ||
 			    !stralloc_cats(&filter, "="))
 				return 0;

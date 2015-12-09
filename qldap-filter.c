@@ -231,6 +231,8 @@ filter_mail(char *mail, int *done)
 
 	if (extcnt == 0)
 		*done = 1;
+
+	if (mail[0] == *auto_break) *done = 1; // OSC: do not do DASH_EXT loop if first char is auto_break
 	return filter.s;
 }
 
